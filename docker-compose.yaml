@@ -1,0 +1,42 @@
+version: '3'
+
+services:
+  nginx: 
+    container_name: proxy
+    build:
+      context: nginx
+    networks:
+      - my_network
+    ports:
+      - "8000:80"
+
+  app:
+    container_name: app
+    hostname: app
+    build:
+      context: node
+    networks:
+      - my_network
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+
+  db:
+    container_name: db
+    image: mysql:5.7
+    command: --innodb-use-native-aio=0
+    restart: always
+    tty: true
+    volumes:
+      - ./db:/var/lib/mysql
+      - ./mysql:/docker-entrypoint-initdb.d
+    environment:
+      - MYSQL_DATABASE=nodedb
+      - MYSQL_ROOT_PASSWORD=root
+    networks:
+      - my_network
+
+networks: 
+  my_network:
+    driver: bridge
